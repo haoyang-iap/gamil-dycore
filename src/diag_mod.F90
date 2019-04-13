@@ -16,12 +16,14 @@ module diag_mod
   public diag_run
   public diag_final
   public diag_total_energy
+  public diag_potential_enstrophy
   public diag_type
   public diag
 
   type diag_type
     real total_mass
     real total_energy
+    real total_potential_enstrophy
     real, allocatable :: vor(:,:)
     real, allocatable :: div(:,:)
   end type diag_type
@@ -86,6 +88,12 @@ contains
       call log_error('Total energy is NaN!')
     end if
 
+    call diag_potential_enstrophy(state, diag)
+
+    if (ieee_is_nan(diag%total_potential_enstrophy)) then
+      call log_error('Total potential enstrophy is NaN!')
+    end if
+   
   end subroutine diag_run
 
   subroutine diag_final()
@@ -120,4 +128,22 @@ contains
 
   end function diag_total_energy
 
+  subroutine diag_potential_enstrophy(state, diagres)
+
+    type(state_type), intent(in) :: state
+    type(diag_type), intent(inout) :: diagres
+
+    integer i, j
+
+    diagres%total_potential_enstrophy = 0.0
+
+    do j = parallel%half_lat_start_idx, parallel%half_lat_end_idx
+      do i = parallel%half_lon_start_idx, parallel%half_lon_end_idx
+        diagres%total_potential_enstrophy = diagres%total_potential_enstrophy &
+          + (diagres%vor(i,j) + coef%half_f(j))**2 &
+          / (state%gd(i,j) + state%gd(i,j+1)) * mesh%half_cos_lat(j)
+      end do
+    end do
+   
+  end subroutine diag_potential_enstrophy
 end module diag_mod
