@@ -133,17 +133,41 @@ contains
     type(state_type), intent(in) :: state
     type(diag_type), intent(inout) :: diagres
 
+    real s
     integer i, j
 
-    diagres%total_potential_enstrophy = 0.0
+    s = 0.0
 
+    do j = parallel%full_lat_start_idx_no_pole, parallel%full_lat_end_idx_no_pole
+      do i = parallel%full_lon_start_idx, parallel%full_lon_end_idx
+        s = s + 0.125 * (( & 
+            diagres%vor(i,j) + diagres%vor(i,j-1) + diagres%vor(i-1,j) + diagres%vor(i-1,j-1) &
+          ) * 0.25 + coef%half_f(j))**2 &
+          / state%gd(i,j) * mesh%half_cos_lat(j)
+      end do
+    end do
+    do j = parallel%full_lat_start_idx_no_pole, parallel%full_lat_end_idx_no_pole
+      do i = parallel%half_lon_start_idx, parallel%half_lon_end_idx
+        s = s + 0.25 * ((diagres%vor(i,j) + (diagres%vor(i,j-1)) * 0.5 + coef%half_f(j))**2 &
+          / (state%gd(i,j) + state%gd(i+1,j)) &
+          * mesh%half_cos_lat(j)
+      end do
+    end do
+    do j = parallel%half_lat_start_idx, parallel%half_lat_end_idx
+      do i = parallel%full_lon_start_idx, parallel%full_lon_end_idx
+        s = s + 0.25 * ((diagres%vor(i,j) + diagres%vor(i-1,j)) * 0.5 + coef%half_f(j))**2 &
+          / (state%gd(i,j) + state%gd(i,j+1)) &
+          * mesh%half_cos_lat(j)
+      end do
+    end do
     do j = parallel%half_lat_start_idx, parallel%half_lat_end_idx
       do i = parallel%half_lon_start_idx, parallel%half_lon_end_idx
-        diagres%total_potential_enstrophy = diagres%total_potential_enstrophy &
-          + (diagres%vor(i,j) + coef%half_f(j))**2 &
-          / (state%gd(i,j) + state%gd(i,j+1)) * mesh%half_cos_lat(j)
+        s = s + 0.5 * (diagres%vor(i,j) + coef%half_f(j))**2 &
+          / (state%gd(i,j) + state%gd(i,j+1) + state%gd(i+1,j) + state%gd(i+1,j+1)) &
+          * mesh%half_cos_lat(j)
       end do
     end do
    
+    diagres%total_potential_enstrophy = s
   end subroutine diag_potential_enstrophy
 end module diag_mod
