@@ -148,7 +148,7 @@ contains
     end do
     do j = parallel%full_lat_start_idx_no_pole, parallel%full_lat_end_idx_no_pole
       do i = parallel%half_lon_start_idx, parallel%half_lon_end_idx
-        s = s + 0.25 * ((diagres%vor(i,j) + (diagres%vor(i,j-1)) * 0.5 + coef%half_f(j))**2 &
+        s = s + 0.25 * ((diagres%vor(i,j) + diagres%vor(i,j-1)) * 0.5 + coef%half_f(j))**2 &
           / (state%gd(i,j) + state%gd(i+1,j)) &
           * mesh%half_cos_lat(j)
       end do
