@@ -41,7 +41,7 @@ contains
 
     call io_create_dataset('restart', file_path=restart_file, mode='input')
     call io_start_input('restart')
-    call time_reset_start_time(datetime(io_get_meta('restart_time', 'restart')))
+    call time_reset_start_time(create_datetime(io_get_meta('restart_time', 'restart')))
     call log_notice('Reset time to ' // trim(curr_time_format) // '.')
     call io_input('u', state%u, 'restart')
     call parallel_fill_halo(state%u(:,:), all_halo=.true.)

@@ -1,6 +1,6 @@
 module time_mod
 
-  use datetime_mod
+  use datetime_mod, datetime => create_datetime
   use timedelta_mod
   use hash_table_mod
   use params_mod, &
@@ -143,20 +143,27 @@ contains
 
   end function time_is_finished
 
-  subroutine time_add_alert(name, days, hours, minutes, seconds)
+  subroutine time_add_alert(name, months, days, hours, minutes, seconds)
 
     character(*), intent(in) :: name
+    real, intent(in), optional :: months
     real, intent(in), optional :: days
     real, intent(in), optional :: hours
     real, intent(in), optional :: minutes
     real, intent(in), optional :: seconds
 
+    real months_
     real days_
     real hours_
     real minutes_
     real seconds_
     type(alert_type) alert
 
+    if (present(months)) then
+      months_ = months
+    else
+      months_ = 0.0
+    end if
     if (present(days)) then
       days_ = days
     else
@@ -178,8 +185,8 @@ contains
       seconds_ = 0.0
     end if
 
-    alert%period = timedelta(days_, hours_, minutes_, seconds_)
-    alert%last_time = start_time - alert%period
+    alert%period = timedelta(months=months_, days=days_, hours=hours_, minutes=minutes_, seconds=seconds_)
+    alert%last_time = start_time
     call alerts%insert(trim(name), alert)
 
   end subroutine time_add_alert
