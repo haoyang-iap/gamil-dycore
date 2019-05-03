@@ -108,6 +108,7 @@ contains
     call output(state(old))
     call log_add_diag('total_mass', diag%total_mass)
     call log_add_diag('total_energy', diag%total_energy)
+    call log_add_diag('total_potential_enstrophy', diag%total_potential_enstrophy)
     call log_step()
 
     do while (.not. time_is_finished())
@@ -118,6 +119,7 @@ contains
       call output(state(old))
       call log_add_diag('total_mass', diag%total_mass)
       call log_add_diag('total_energy', diag%total_energy)
+      call log_add_diag('total_potential_enstrophy', diag%total_potential_enstrophy)
       call log_step()
     end do
 
